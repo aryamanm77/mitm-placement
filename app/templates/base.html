@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}MITM Placement Dashboard{% endblock %} – Maharaja Institute of Technology Mysore</title>
+  <meta name="description" content="{% block meta_desc %}Placement Tracking & Training Dashboard – MITM Mysore{% endblock %}"/>
+
+  <!-- Open Sans — exact same as mitmysore.in -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+  <!-- Base CSS — mirrors mitmysore.in Astra theme tokens exactly -->
+  <style>
+    /* ── MITM Design Tokens (from mitmysore.in CSS) ─────────────────────── */
+    :root {
+      --mitm-primary:       #046BD2;   /* --ast-global-color-0 */
+      --mitm-primary-dark:  #045CB4;   /* --ast-global-color-1 */
+      --mitm-dark:          #1E293B;   /* --ast-global-color-2 */
+      --mitm-body:          #334155;   /* --ast-global-color-3 */
+      --mitm-white:         #FFFFFF;   /* --ast-global-color-4 */
+      --mitm-bg:            #F0F5FA;   /* --ast-global-color-5 */
+      --mitm-border:        #D1D5DB;   /* --ast-global-color-7 */
+      --mitm-gold:          #C9A84C;
+      --mitm-success:       #16A34A;
+      --mitm-danger:        #DC2626;
+      --mitm-warning:       #D97706;
+      --mitm-container:     1240px;
+      --mitm-radius:        4px;
+      --mitm-shadow:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --mitm-shadow-md:     0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+    }
+
+    /* ── Reset & Base ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 100%; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--mitm-body);
+      background: var(--mitm-bg);
+    }
+
+    a { color: var(--mitm-primary); text-decoration: none; transition: color .2s; }
+    a:hover { color: var(--mitm-primary-dark); }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 600;
+      color: var(--mitm-dark);
+      line-height: 1.3;
+    }
+    h1 { font-size: 2.25rem; }
+    h2 { font-size: 1.875rem; }
+    h3 { font-size: 1.5rem; }
+    h4 { font-size: 1.25rem; }
+    h5 { font-size: 1.125rem; }
+
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* ── Container ────────────────────────────────────────────────────────── */
+    .mitm-container {
+      max-width: var(--mitm-container);
+      margin: 0 auto;
+      padding: 0 2em;
+    }
+
+    /* ── Top Bar (matches MITM's top announcement bar) ───────────────────── */
+    .top-bar {
+      background: var(--mitm-dark);
+      color: #94a3b8;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 6px 0;
+      border-bottom: 1px solid #2d3a4f;
+    }
+    .top-bar .mitm-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .top-bar .top-codes { display: flex; gap: 16px; flex-wrap: wrap; }
+    .top-bar .top-codes span { display: flex; align-items: center; gap: 4px; }
+    .top-bar .top-codes span i { color: var(--mitm-primary); font-size: 0.75rem; }
+    .top-bar .top-links { display: flex; gap: 12px; align-items: center; }
+    .top-bar .top-links a {
+      color: #94a3b8;
+      font-size: 0.8125rem;
+      transition: color .2s;
+    }
+    .top-bar .top-links a:hover { color: var(--mitm-white); }
+    .top-bar .top-links .btn-apply {
+      background: var(--mitm-primary);
+      color: var(--mitm-white);
+      padding: 4px 14px;
+      border-radius: var(--mitm-radius);
+      font-weight: 600;
+      font-size: 0.8125rem;
+    }
+    .top-bar .top-links .btn-apply:hover { background: var(--mitm-primary-dark); }
+
+    /* ── Header (exact MITM layout: logo left + nav right) ──────────────── */
+    .site-header {
+      background: var(--mitm-white);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+    }
+    .site-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+    .site-logo img {
+      height: 64px;
+      width: 64px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .site-logo-text { line-height: 1.25; }
+    .site-logo-text .logo-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--mitm-dark);
+      display: block;
+    }
+    .site-logo-text .logo-sub {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--mitm-primary);
+      display: block;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Navigation ───────────────────────────────────────────────────────── */
+    .main-nav { display: flex; align-items: center; gap: 4px; }
+    .main-nav a {
+      color: var(--mitm-dark);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--mitm-radius);
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .main-nav a:hover, .main-nav a.active {
+      color: var(--mitm-primary);
+      background: #EBF4FF;
+    }
+    .main-nav .nav-btn {
+      background: var(--mitm-primary);
+      color: var(--mitm-white) !important;
+      padding: 10px 22px !important;
+      border-radius: var(--mitm-radius) !important;
+      font-weight: 600;
+    }
+    .main-nav .nav-btn:hover {
+      background: var(--mitm-primary-dark) !important;
+      color: var(--mitm-white) !important;
+    }
+    .main-nav .nav-btn-outline {
+      border: 2px solid var(--mitm-primary);
+      color: var(--mitm-primary) !important;
+      padding: 8px 20px !important;
+    }
+    .main-nav .nav-btn-outline:hover {
+      background: var(--mitm-primary);
+      color: var(--mitm-white) !important;
+    }
+
+    /* ── Page Banner (placement page style) ──────────────────────────────── */
+    .page-banner {
+      background: linear-gradient(135deg, var(--mitm-dark) 0%, #0f3460 60%, var(--mitm-primary-dark) 100%);
+      color: var(--mitm-white);
+      padding: 48px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('/static/images/mitm_logo.jpg') center/120px no-repeat;
+      opacity: 0.04;
+    }
+    .page-banner h1 {
+      color: var(--mitm-white);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .page-banner .breadcrumb {
+      font-size: 0.875rem;
+      color: rgba(255,255,255,.7);
+    }
+    .page-banner .breadcrumb a { color: rgba(255,255,255,.85); }
+    .page-banner .breadcrumb span { color: var(--mitm-gold); }
+
+    /* ── Buttons ──────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: var(--mitm-radius);
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1;
+      border: none;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--mitm-primary); color: var(--mitm-white); }
+    .btn-primary:hover { background: var(--mitm-primary-dark); color: var(--mitm-white); }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--mitm-primary);
+      color: var(--mitm-primary);
+    }
+    .btn-outline:hover { background: var(--mitm-primary); color: var(--mitm-white); }
+    .btn-success { background: var(--mitm-success); color: var(--mitm-white); }
+    .btn-success:hover { background: #15803d; color: var(--mitm-white); }
+    .btn-danger { background: var(--mitm-danger); color: var(--mitm-white); }
+    .btn-sm { padding: 8px 18px; font-size: 0.875rem; }
+    .btn-xs { padding: 5px 12px; font-size: 0.8125rem; }
+    .btn-block { display: flex; width: 100%; justify-content: center; }
+
+    /* ── Cards ────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--mitm-white);
+      border-radius: 6px;
+      box-shadow: var(--mitm-shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--mitm-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-header h3 { font-size: 1.0625rem; margin: 0; }
+    .card-body { padding: 24px; }
+    .card-footer {
+      padding: 14px 24px;
+      border-top: 1px solid var(--mitm-border);
+      background: #f8fafc;
+    }
+
+    /* ── Forms (exact Astra theme input style) ────────────────────────────── */
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      color: #111827;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      color: #475569;
+      background: var(--mitm-white);
+      border: 1px solid var(--mitm-border);
+      border-radius: var(--mitm-radius);
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    input[type="text"]:not(textarea),
+    input[type="email"]:not(textarea),
+    input[type="password"]:not(textarea),
+    input[type="number"]:not(textarea),
+    input[type="tel"]:not(textarea),
+    select { height: 44px; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--mitm-primary);
+      box-shadow: none;
+    }
+    ::placeholder { color: #9CA3AF; }
+    .form-error { color: var(--mitm-danger); font-size: 0.8125rem; margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ── Stats Grid ───────────────────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--mitm-white);
+      border-radius: 6px;
+      padding: 22px 24px;
+      box-shadow: var(--mitm-shadow);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-left: 4px solid var(--mitm-primary);
+      transition: box-shadow .2s, transform .2s;
+    }
+    .stat-card:hover { box-shadow: var(--mitm-shadow-md); transform: translateY(-1px); }
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 8px;
+      background: #EBF4FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon i { font-size: 1.375rem; color: var(--mitm-primary); }
+    .stat-label { font-size: 0.8125rem; color: #64748b; font-weight: 500; }
+    .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--mitm-dark); line-height: 1.2; }
+
+    /* ── Tables ───────────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+    thead th {
+      background: var(--mitm-dark);
+      color: var(--mitm-white);
+      font-weight: 600;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      padding: 13px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 13px 16px; border-bottom: 1px solid var(--mitm-border); color: var(--mitm-body); vertical-align: middle; }
+
+    /* ── Badges ───────────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-success { background: #dcfce7; color: #15803d; }
+    .badge-danger  { background: #fee2e2; color: #b91c1c; }
+    .badge-warning { background: #fef9c3; color: #854d0e; }
+    .badge-primary { background: #dbeafe; color: #1d4ed8; }
+    .badge-neutral { background: #f1f5f9; color: #475569; }
+
+    /* ── Alert ────────────────────────────────────────────────────────────── */
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--mitm-radius);
+      font-size: 0.9375rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--mitm-danger); }
+    .alert-success { background: #dcfce7; color: #166534; border-left: 4px solid var(--mitm-success); }
+    .alert-info    { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--mitm-primary); }
+
+    /* ── Sidebar layout ───────────────────────────────────────────────────── */
+    .page-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 24px;
+      padding: 28px 0 48px;
+    }
+    .sidebar {
+      background: var(--mitm-white);
+      border-radius: 6px;
+      box-shadow: var(--mitm-shadow);
+      padding: 24px 0;
+      height: fit-content;
+      position: sticky;
+      top: 90px;
+    }
+    .sidebar-user {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--mitm-border);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .sidebar-logo {
+      width: 72px; height: 72px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid var(--mitm-primary);
+    }
+    .sidebar-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .sidebar-name { font-size: 0.9375rem; font-weight: 700; color: var(--mitm-dark); }
+    .sidebar-sub  { font-size: 0.8125rem; color: #64748b; }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 20px;
+      color: var(--mitm-body);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: all .15s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      color: var(--mitm-primary);
+      background: #EBF4FF;
+      border-left-color: var(--mitm-primary);
+    }
+    .sidebar-nav a i { width: 18px; text-align: center; font-size: 1rem; }
+    .main-content { min-width: 0; }
+
+    /* ── Progress bar ─────────────────────────────────────────────────────── */
+    .progress-bar-wrap { background: #e2e8f0; border-radius: 9999px; height: 8px; overflow: hidden; }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: var(--mitm-primary);
+      transition: width .6s ease;
+    }
+    .progress-bar-fill.success { background: var(--mitm-success); }
+    .progress-bar-fill.danger  { background: var(--mitm-danger); }
+    .progress-bar-fill.warning { background: var(--mitm-warning); }
+
+    /* ── Leaderboard banner ───────────────────────────────────────────────── */
+    .leaderboard-banner {
+      background: linear-gradient(135deg, var(--mitm-gold) 0%, #b8860b 100%);
+      color: var(--mitm-dark);
+      border-radius: 6px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(201,168,76,.35);
+    }
+    .leaderboard-banner .trophy { font-size: 2rem; }
+    .leaderboard-banner .lb-title { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: rgba(0,0,0,.6); }
+    .leaderboard-banner .lb-name  { font-size: 1.25rem; font-weight: 800; color: var(--mitm-dark); }
+    .leaderboard-banner .lb-score { font-size: 0.9375rem; font-weight: 600; }
+
+    /* ── Toast ────────────────────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: var(--mitm-dark);
+      color: var(--mitm-white);
+      padding: 14px 18px;
+      border-radius: 6px;
+      font-size: 0.9375rem;
+      min-width: 260px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn .3s ease;
+    }
+    .toast.success { border-left: 4px solid var(--mitm-success); }
+    .toast.error   { border-left: 4px solid var(--mitm-danger); }
+    @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ── Modal ────────────────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--mitm-white);
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      max-width: 560px;
+      width: 100%;
+      margin: 16px;
+      transform: translateY(16px);
+      transition: transform .2s;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--mitm-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 1.125rem; }
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      color: #64748b; font-size: 1.25rem;
+      padding: 4px 8px; border-radius: 4px;
+      transition: background .15s;
+    }
+    .modal-close:hover { background: var(--mitm-bg); }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--mitm-border); display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── Footer (exact MITM footer style) ───────────────────────────────── */
+    .site-footer {
+      background: var(--mitm-dark);
+      color: #94a3b8;
+      padding: 48px 0 0;
+      margin-top: auto;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
+      gap: 32px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid #2d3a4f;
+    }
+    .footer-brand img { height: 64px; width: 64px; object-fit: contain; border-radius: 4px; margin-bottom: 14px; }
+    .footer-brand p { font-size: 0.9rem; line-height: 1.7; }
+    .footer-col h4 { color: var(--mitm-white); font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 10px; }
+    .footer-col ul li a { color: #94a3b8; font-size: 0.9rem; transition: color .2s; }
+    .footer-col ul li a:hover { color: var(--mitm-white); }
+    .footer-contact-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-size: 0.875rem; }
+    .footer-contact-item i { color: var(--mitm-primary); margin-top: 2px; flex-shrink: 0; }
+    .footer-bottom {
+      padding: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.875rem;
+    }
+    .social-links { display: flex; gap: 12px; }
+    .social-links a {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: #2d3a4f;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      font-size: 0.875rem;
+    }
+    .social-links a:hover { background: var(--mitm-primary); color: var(--mitm-white); }
+
+    /* ── Dept badge ───────────────────────────────────────────────────────── */
+    .dept-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--mitm-white);
+      border: 1px solid var(--mitm-border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--mitm-dark);
+    }
+    .dept-badge img { height: 28px; width: 28px; object-fit: contain; }
+
+    /* ── Responsive ───────────────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .page-layout  { grid-template-columns: 1fr; }
+      .sidebar      { position: static; }
+    }
+    @media (max-width: 768px) {
+      .main-nav { display: none; }
+      .header-inner { padding: 10px 0; }
+      .top-bar .top-codes { display: none; }
+      .form-row { grid-template-columns: 1fr; }
+      h1 { font-size: 1.625rem; }
+      h2 { font-size: 1.375rem; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 544px) {
+      .mitm-container { padding: 0 1.25em; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ══ TOP BAR ══════════════════════════════════════════════════════════════ -->
+<div class="top-bar">
+  <div class="mitm-container">
+    <div class="top-codes">
+      <span><i class="fa-solid fa-hashtag"></i> CET Code: E-158</span>
+      <span><i class="fa-solid fa-hashtag"></i> COMEDK: E-078</span>
+      <span><i class="fa-solid fa-hashtag"></i> VTU Affiliated</span>
+    </div>
+    <div class="top-links">
+      <a href="tel:+919620228256"><i class="fa-solid fa-phone"></i> 9620228256</a>
+      <a href="https://mitmysore.in" target="_blank">Main Website</a>
+      <a href="https://admission.mitmysore.in" target="_blank" class="btn-apply">Apply UG/PG</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="mitm-container">
+    <div class="header-inner">
+      <a href="/" class="site-logo">
+        <img src="/static/images/mitm_logo.jpg" alt="MITM Logo"/>
+        <div class="site-logo-text">
+          <span class="logo-title">Maharaja Institute of Technology Mysore</span>
+          <span class="logo-sub">Placement & Training Dashboard</span>
+        </div>
+      </a>
+      <nav class="main-nav" id="main-nav">
+        {% block nav_links %}
+        <a href="/admin/login">Dept. Login</a>
+        <a href="/student/login" class="nav-btn">Student Portal</a>
+        {% endblock %}
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- ══ MAIN CONTENT ═════════════════════════════════════════════════════════ -->
+<main id="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="mitm-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="/static/images/mitm_logo.jpg" alt="MITM Logo"/>
+        <p>The Institute is renowned as 'Teaching Centric' being resourced with knowledgeable and committed faculties. VTU Affiliated | NAAC Accredited | NBA Accredited</p>
+        <div class="social-links" style="margin-top:16px;">
+          <a href="https://www.youtube.com/@jnanamitra-2406" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://www.instagram.com/mitmofficial/" target="_blank"><i class="fab fa-instagram"></i></a>
+          <a href="https://www.linkedin.com/groups/13992676/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/admin/login">Department Login</a></li>
+          <li><a href="/student/login">Student Portal</a></li>
+          <li><a href="https://mitmysore.in/placement2-2/" target="_blank">Placements</a></li>
+          <li><a href="https://mitmysore.in/index.php/under-graduate/" target="_blank">UG Programs</a></li>
+          <li><a href="https://mitmysore.in/naac/" target="_blank">NAAC</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Departments</h4>
+        <ul>
+          <li><a href="https://mitmysore.in/index.php/information-science/" target="_blank">Information Science</a></li>
+          <li><a href="https://mitmysore.in/index.php/cse/" target="_blank">Computer Science</a></li>
+          <li><a href="https://mitmysore.in/index.php/electronics-communication-engineering/" target="_blank">Electronics & Comm.</a></li>
+          <li><a href="https://mitmysore.in/index.php/mechanical-engineering/" target="_blank">Mechanical Engg.</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact Us</h4>
+        <div class="footer-contact-item"><i class="fa-solid fa-location-dot"></i><span>Belawadi, Srirangapatna Tq, Mandya, Karnataka – 571477</span></div>
+        <div class="footer-contact-item"><i class="fa-solid fa-envelope"></i><span>principal@mitmysore.in</span></div>
+        <div class="footer-contact-item"><i class="fa-solid fa-phone"></i><span>9620228256 (Admissions)</span></div>
+        <div class="footer-contact-item"><i class="fa-solid fa-phone"></i><span>9620228021/22 (General)</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 Maharaja Institute of Technology Mysore. All rights reserved.</span>
+      <span>Placement & Training Dashboard v1.0</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ TOAST CONTAINER ═══════════════════════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ══ GLOBAL JS ═════════════════════════════════════════════════════════════ -->
+<script>
+  // Toast utility
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> ${msg}`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  // Modal helpers
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+  });
+</script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

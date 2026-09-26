@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Placement & Training Dashboard{% endblock %}
+{% block meta_desc %}MITM Mysore — Centralized Placement Tracking, Training & AI Mock Interview Platform{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero Section ─────────────────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg,#0f2044 0%,#0d3875 55%,#046BD2 100%);color:#fff;padding:72px 0 60px;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:url('/static/images/mitm_logo.jpg') right 5% center/320px no-repeat;opacity:.06;pointer-events:none;"></div>
+  <div class="mitm-container" style="position:relative;z-index:1;">
+    <div style="max-width:700px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:9999px;padding:6px 16px;font-size:.8125rem;font-weight:600;margin-bottom:24px;letter-spacing:.04em;">
+        <i class="fa-solid fa-star" style="color:#C9A84C;"></i>
+        MAHARAJA INSTITUTE OF TECHNOLOGY MYSORE
+      </div>
+      <h1 style="color:#fff;font-size:2.75rem;font-weight:800;line-height:1.2;margin-bottom:18px;">
+        Placement &amp; Training<br/><span style="color:#C9A84C;">Excellence Portal</span>
+      </h1>
+      <p style="font-size:1.125rem;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:32px;max-width:600px;">
+        A centralized system for department admins and students to track placement performance,
+        train with AI-powered mock interviews, and bridge the gap between campus and career.
+      </p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a href="/admin/login" class="btn btn-primary" style="background:#fff;color:#046BD2;font-weight:700;">
+          <i class="fa-solid fa-building-columns"></i> Department Login
+        </a>
+        <a href="/student/login" class="btn btn-outline" style="border-color:rgba(255,255,255,.5);color:#fff;">
+          <i class="fa-solid fa-user-graduate"></i> Student Portal
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Bar ────────────────────────────────────────────────────────── -->
+<section style="background:#fff;border-bottom:1px solid var(--mitm-border);padding:24px 0;">
+  <div class="mitm-container">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--mitm-border);">
+      {% for stat in [
+        ("642", "Total Offers (2025-26)", "fa-briefcase"),
+        ("₹19 LPA", "Highest Package", "fa-arrow-trend-up"),
+        ("₹3.90 LPA", "Average Package", "fa-chart-pie"),
+        ("150+", "Companies Visited", "fa-building")
+      ] %}
+      <div style="background:#fff;padding:24px;text-align:center;">
+        <div style="font-size:2rem;font-weight:800;color:var(--mitm-primary);">{{ stat[0] }}</div>
+        <div style="font-size:.875rem;color:#64748b;font-weight:500;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="fa-solid {{ stat[2] }}"></i>{{ stat[1] }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Departments ──────────────────────────────────────────────────────── -->
+<section style="padding:56px 0;">
+  <div class="mitm-container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <h2 style="margin-bottom:10px;">Participating Departments</h2>
+      <p style="color:#64748b;max-width:560px;margin:0 auto;">All four engineering departments at MITM are tracked through this centralized placement management system.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:20px;">
+      {% for dept in [
+        ("Information Science &amp; Engineering", "IS", "logo_is.jpg", "#046BD2", "fa-database", "E158IS"),
+        ("Computer Science &amp; Engineering", "CS", "logo_cs.jpg", "#0891B2", "fa-microchip", "E158CS"),
+        ("Electronics &amp; Communication Engg.", "EC", "logo_ec.jpg", "#7C3AED", "fa-tower-broadcast", "E158EC"),
+        ("Mechanical Engineering", "ME", "logo_me.jpg", "#B45309", "fa-gears", "E158ME")
+      ] %}
+      <div class="card" style="transition:box-shadow .2s,transform .2s;cursor:default;" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)';this.style.transform='translateY(-3px)';" onmouseout="this.style.boxShadow='';this.style.transform='';">
+        <div style="background:{{ dept[3] }};padding:24px;display:flex;align-items:center;gap:16px;">
+          <img src="/static/images/{{ dept[2] }}" alt="{{ dept[1] }} Dept Logo" style="height:72px;width:72px;object-fit:contain;border-radius:8px;background:#fff;padding:6px;"/>
+          <div>
+            <div style="font-size:.75rem;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.06em;">{{ dept[5] }}</div>
+            <div style="font-size:1.375rem;font-weight:800;color:#fff;">Dept. of {{ dept[1] }}</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h4 style="font-size:1rem;margin-bottom:8px;font-weight:600;">{{ dept[0] }}</h4>
+          <p style="font-size:.875rem;color:#64748b;line-height:1.6;margin-bottom:16px;">Tracks aptitude, GD, HR, and coding performance for all placement-eligible students.</p>
+          <a href="/admin/login" class="btn btn-outline btn-sm" style="border-color:{{ dept[3] }};color:{{ dept[3] }};">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Admin Login
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────────────────────── -->
+<section style="background:#fff;padding:56px 0;">
+  <div class="mitm-container">
+    <div style="text-align:center;margin-bottom:44px;">
+      <h2>Platform Features</h2>
+      <p style="color:#64748b;margin-top:10px;">Everything needed to track, train, and transform student placement readiness.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;">
+      {% for feat in [
+        ("fa-chart-line","#046BD2","Live Analytics","Plotly 3D charts auto-update as evaluation data is entered for each round."),
+        ("fa-robot","#7C3AED","AI Mock Interviews","LLaMA 3.3-70B via Groq — aptitude MCQs, GD simulation, HR interview, live coding rounds."),
+        ("fa-shield-halved","#16A34A","Data Isolation","Students see only their own data. Strict JWT-based role separation between admin and student."),
+        ("fa-mobile-screen","#0891B2","OTP Login","Students login securely via mobile OTP — no passwords required."),
+        ("fa-user-xmark","#DC2626","Weakness Analysis","Personalized dashboard highlights failed rounds with curated video + faculty contacts."),
+        ("fa-code","#B45309","Live Code Editor","Monaco Editor (VS Code engine) for coding interview rounds with AI reviewer.")
+      ] %}
+      <div style="display:flex;gap:16px;align-items:flex-start;padding:22px;border:1px solid var(--mitm-border);border-radius:6px;background:#fff;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)';" onmouseout="this.style.boxShadow='';">
+        <div style="width:44px;height:44px;background:{{ feat[1] }}15;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fa-solid {{ feat[0] }}" style="color:{{ feat[1] }};font-size:1.125rem;"></i>
+        </div>
+        <div>
+          <h4 style="font-size:.9375rem;margin-bottom:6px;">{{ feat[2] }}</h4>
+          <p style="font-size:.875rem;color:#64748b;line-height:1.6;">{{ feat[3] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Top Recruiters ─────────────────────────────────────────────────────── -->
+<section style="background:#F8FAFC;padding:56px 0;border-top:1px solid var(--mitm-border);">
+  <div class="mitm-container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <h2 style="margin-bottom:10px;">Our Top Recruiters</h2>
+      <p style="color:#64748b;max-width:560px;margin:0 auto;">MITM students have been successfully placed in leading organizations globally.</p>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:24px;">
+      {% for company, img_url in [
+        ("Infosys", "https://mitmysore.in/wp-content/uploads/2026/07/Infosys.png"),
+        ("IBM", "https://mitmysore.in/wp-content/uploads/2026/07/IBM.jpg"),
+        ("Tata Consultancy Services (TCS)", "https://mitmysore.in/wp-content/uploads/2026/07/TCS.jpg"),
+        ("Flipkart", "https://mitmysore.in/wp-content/uploads/2026/07/FlipKart.jpeg"),
+        ("Mphasis", "https://mitmysore.in/wp-content/uploads/2026/07/mpasis.jpg"),
+        ("Kaynes Technology", "https://mitmysore.in/wp-content/uploads/2026/07/Kaynes-Technology.jpg"),
+        ("Tech Mahindra", "https://mitmysore.in/wp-content/uploads/2026/07/TechMahindra.png"),
+        ("VI (Vodafone Idea)", "https://mitmysore.in/wp-content/uploads/2026/07/Vi.jpg"),
+        ("Dyashin Technosoft Pvt. Ltd.", "https://mitmysore.in/wp-content/uploads/2026/07/Dyashin-Technosoft-Pvt-Ltd.jpg")
+      ] %}
+      <div style="background:#fff;border:1px solid var(--mitm-border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;width:160px;height:100px;transition:box-shadow .2s,transform .2s;" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)';this.style.transform='translateY(-3px)';" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,.05)';this.style.transform='';">
+        <img src="{{ img_url }}" alt="{{ company }}" title="{{ company }}" style="max-width:100%;max-height:100%;object-fit:contain;"/>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ──────────────────────────────────────────────────────────────── -->
+<section style="background:var(--mitm-primary);padding:52px 0;text-align:center;">
+  <div class="mitm-container">
+    <img src="/static/images/mitm_logo.jpg" alt="MITM" style="height:72px;width:72px;border-radius:50%;object-fit:cover;margin:0 auto 20px;border:3px solid rgba(255,255,255,.3);"/>
+    <h2 style="color:#fff;margin-bottom:10px;">Ready to Get Started?</h2>
+    <p style="color:rgba(255,255,255,.8);max-width:480px;margin:0 auto 28px;">Department admins can manage student data and track placement readiness. Students can access their personalized dashboard and practice AI interviews.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="/admin/login" class="btn" style="background:#fff;color:var(--mitm-primary);font-weight:700;">
+        <i class="fa-solid fa-building-columns"></i> Department Admin
+      </a>
+      <a href="/student/login" class="btn btn-outline" style="border-color:rgba(255,255,255,.6);color:#fff;">
+        <i class="fa-solid fa-user-graduate"></i> Student Login
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

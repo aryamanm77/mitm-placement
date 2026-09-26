@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard | MITM Placements{% endblock %}
+{% block meta_desc %}Student performance tracking and mock interview dashboard.{% endblock %}
+
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    margin-top: 32px;
+}
+.stat-box {
+    background: #fff;
+    border: 1px solid var(--mitm-border);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.stat-label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mitm-text);
+}
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.status-badge.placed {
+    background: #DCFCE7;
+    color: #166534;
+}
+.status-badge.unplaced {
+    background: #FEF2F2;
+    color: #991B1B;
+}
+
+@media(max-width: 921px){
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+.resource-card {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--mitm-border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+}
+.resource-card:hover {
+    background: #F8FAFC;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mitm-container" style="padding: 40px 0;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="font-size: 0.875rem; color: #64748b; font-weight: 600; margin-bottom: 6px;">
+                <i class="fa-solid fa-graduation-cap"></i> {{ student.branch }}
+            </div>
+            <h1 style="font-size: 2.25rem; margin: 0; color: var(--mitm-text);">
+                Welcome, {{ student.name }}
+            </h1>
+            <div style="color: var(--mitm-primary); font-weight: 600; margin-top: 4px;">{{ student.usn }}</div>
+        </div>
+        <div>
+            <a href="/student/interview" class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 24px;">
+                <i class="fa-solid fa-robot"></i> Start AI Mock Interview
+            </a>
+            <a href="/logout" class="btn btn-outline" style="margin-left: 10px;">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Left Column: Profile & Stats -->
+        <div>
+            <div class="stat-box" style="margin-bottom: 24px; text-align: center;">
+                <div style="width: 80px; height: 80px; background: var(--mitm-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid var(--mitm-primary);">
+                    <i class="fa-solid fa-user" style="font-size: 2rem; color: var(--mitm-primary);"></i>
+                </div>
+                <h3 style="margin: 0 0 8px 0; font-size: 1.25rem;">{{ student.name }}</h3>
+                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 16px;">{{ student.email }}</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; background: #F8FAFC; padding: 16px; border-radius: 8px;">
+                    <div>
+                        <div class="stat-label">CGPA</div>
+                        <div class="stat-value">{{ student.cgpa }}</div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Status</div>
+                        {% if placement %}
+                            <div class="status-badge placed">Placed</div>
+                        {% else %}
+                            <div class="status-badge unplaced">Unplaced</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if placement %}
+            <div class="stat-box" style="margin-bottom: 24px; border-left: 4px solid #16A34A;">
+                <h4 style="margin-top: 0; margin-bottom: 16px; color: #16A34A;"><i class="fa-solid fa-check-circle"></i> Placement Offer</h4>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--mitm-text);">{{ placement.company_name }}</div>
+                <div style="color: #64748b; font-size: 0.875rem; margin-top: 2px;">{{ placement.role }}</div>
+                <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+                    <i class="fa-solid fa-indian-rupee-sign" style="color: #16A34A;"></i> 
+                    <span style="font-weight: 600;">{{ placement.package_lpa }} LPA</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Graphs & Resources -->
+        <div>
+            <!-- Performance Graph -->
+            <div class="stat-box" style="margin-bottom: 24px;">
+                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.125rem;">Evaluation Performance 3D</h3>
+                <div id="performance-chart" style="width:100%; height:400px;"></div>
+                
+                <script>
+                    const evalData = {{ evaluations | tojson | safe }};
+                    
+                    if(evalData.length > 0) {
+                        const rounds = evalData.map(e => e.round_name);
+                        const scores = evalData.map(e => e.score);
+                        
+                        var data = [{
+                            type: 'scatter3d',
+                            mode: 'lines+markers',
+                            x: rounds,
+                            y: scores,
+                            z: evalData.map((_, i) => i),
+                            marker: {
+                                size: 8,
+                                color: scores,
+                                colorscale: 'Viridis',
+                                showscale: true
+                            },
+                            line: {
+                                color: '#046BD2',
+                                width: 4
+                            }
+                        }];
+
+                        var layout = {
+                            margin: { l: 0, r: 0, b: 0, t: 0 },
+                            scene: {
+                                xaxis: { title: 'Round' },
+                                yaxis: { title: 'Score' },
+                                zaxis: { title: 'Timeline' }
+                            },
+                            paper_bgcolor: 'transparent',
+                        };
+
+                        Plotly.newPlot('performance-chart', data, layout, {responsive: true});
+                    } else {
+                        document.getElementById('performance-chart').innerHTML = 
+                            '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">No evaluation data available yet.</div>';
+                    }
+                </script>
+            </div>
+
+            <!-- Weak Areas & Resources -->
+            <div class="stat-box">
+                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.125rem;">
+                    <i class="fa-solid fa-book-open" style="color: var(--mitm-primary);"></i> Recommended Resources
+                </h3>
+                <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 16px;">Based on your lowest evaluation scores, we recommend these training materials:</p>
+                
+                {% if recommended_resources %}
+                    {% for res in recommended_resources %}
+                    <div class="resource-card">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: #EEF2FF; color: #4F46E5; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                            {% if res.resource_type == 'video' %}
+                                <i class="fa-brands fa-youtube" style="color: #DC2626;"></i>
+                            {% elif res.resource_type == 'article' %}
+                                <i class="fa-regular fa-file-lines"></i>
+                            {% else %}
+                                <i class="fa-solid fa-laptop-code"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--mitm-text); margin-bottom: 4px;">{{ res.title }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">Target: {{ res.target_round }}</div>
+                        </div>
+                        <div style="margin-left: auto; align-self: center;">
+                            <a href="{{ res.url }}" target="_blank" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 6px 12px;">View</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 24px; color: #64748b; background: #F8FAFC; border-radius: 8px;">
+                        Keep up the good work! Complete mock interviews to get personalized resources.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
